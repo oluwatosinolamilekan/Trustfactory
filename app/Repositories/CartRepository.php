@@ -15,7 +15,6 @@ class CartRepository
     {
         return CartItem::where('user_id', $userId)
             ->with('product')
-            ->orderBy('created_at', 'desc')
             ->get();
     }
 
@@ -71,10 +70,6 @@ class CartRepository
     public function calculateTotal(Collection $cartItems): float
     {
         return $cartItems->sum(function ($item) {
-            // Skip items without product (edge case for race conditions)
-            if (!$item->product) {
-                return 0;
-            }
             return $item->quantity * $item->product->price;
         });
     }

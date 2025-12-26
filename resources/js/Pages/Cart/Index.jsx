@@ -5,17 +5,11 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import DangerButton from '@/Components/DangerButton';
 import toast from 'react-hot-toast';
 
-export default function Index({ cartItems = [], total = 0 }) {
+export default function Index({ cartItems, total }) {
     const [updatingItem, setUpdatingItem] = useState(null);
     const [removingItem, setRemovingItem] = useState(null);
     const [quantities, setQuantities] = useState(
-        cartItems.reduce((acc, item) => {
-            // Only add to quantities if item and product exist
-            if (item && item.id && item.product) {
-                acc[item.id] = item.quantity;
-            }
-            return acc;
-        }, {})
+        cartItems.reduce((acc, item) => ({ ...acc, [item.id]: item.quantity }), {})
     );
     const { flash } = usePage().props;
 
@@ -112,13 +106,7 @@ export default function Index({ cartItems = [], total = 0 }) {
                             ) : (
                                 <>
                                     <div className="space-y-4 mb-6">
-                                        {cartItems.map((item) => {
-                                            // Skip items without product data
-                                            if (!item || !item.product) {
-                                                return null;
-                                            }
-                                            
-                                            return (
+                                        {cartItems.map((item) => (
                                             <div
                                                 key={item.id}
                                                 className="flex items-center gap-4 p-4 border rounded-lg"
@@ -146,7 +134,7 @@ export default function Index({ cartItems = [], total = 0 }) {
                                                         type="number"
                                                         min="1"
                                                         max={item.product.stock_quantity}
-                                                        value={quantities[item.id] || item.quantity}
+                                                        value={quantities[item.id]}
                                                         onChange={(e) => updateQuantity(item.id, item.product.id, e.target.value)}
                                                         className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     />
@@ -170,8 +158,7 @@ export default function Index({ cartItems = [], total = 0 }) {
                                                     {removingItem === item.id ? 'Removing...' : 'Remove'}
                                                 </DangerButton>
                                             </div>
-                                            );
-                                        })}
+                                        ))}
                                     </div>
 
                                     <div className="border-t pt-4">

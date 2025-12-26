@@ -2,18 +2,8 @@
 
 namespace App\Http\Requests\Cart;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class AddToCartRequest extends FormRequest
+class AddToCartRequest extends BaseCartRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return auth()->check();
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -27,12 +17,7 @@ class AddToCartRequest extends FormRequest
                 'integer',
                 'exists:products,id'
             ],
-            'quantity' => [
-                'required',
-                'integer',
-                'min:1',
-                'max:1000'
-            ],
+            'quantity' => $this->quantityRules(),
         ];
     }
 
@@ -43,13 +28,10 @@ class AddToCartRequest extends FormRequest
      */
     public function messages(): array
     {
-        return [
+        return array_merge($this->quantityMessages(), [
             'product_id.required' => 'Please select a product to add to cart.',
             'product_id.exists' => 'The selected product does not exist.',
-            'quantity.required' => 'Please specify the quantity.',
-            'quantity.min' => 'Quantity must be at least 1.',
-            'quantity.max' => 'You cannot add more than 1000 items at once.',
-        ];
+        ]);
     }
 
     /**

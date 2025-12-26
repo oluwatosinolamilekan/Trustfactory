@@ -23,11 +23,7 @@ class OrderController extends Controller
         $orders = $this->orderRepository->getUserOrdersPaginated($request->user()->id, 10);
 
         return Inertia::render('Orders/Index', [
-            'orders' => [
-                'data' => OrderResource::collection($orders->items())->resolve(),
-                'links' => $orders->linkCollection()->toArray(),
-                'meta' => PaginationHelper::getMetadata($orders),
-            ],
+            'orders' => PaginationHelper::formatForInertia($orders, OrderResource::class),
         ]);
     }
 

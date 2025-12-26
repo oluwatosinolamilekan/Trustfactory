@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Exception;
 use App\Jobs\LowStockNotification;
+use App\Traits\ValidatesStock;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\CartRepository;
 use App\Repositories\OrderRepository;
@@ -11,6 +12,8 @@ use App\Repositories\ProductRepository;
 
 class CheckoutService
 {
+    use ValidatesStock;
+
     public function __construct(
         protected CartRepository $cartRepository,
         protected OrderRepository $orderRepository,
@@ -83,9 +86,7 @@ class CheckoutService
         $total = 0;
 
         foreach ($cartItems as $cartItem) {
-            if (!$this->productRepository->hasSufficientStock($cartItem->product, $cartItem->quantity)) {
-                throw new Exception("Insufficient stock for {$cartItem->product->name}");
-            }
+            $this->validateStockOrFail($cartItem->product, $cartItem->quantity, $this->productRepository);
             $total += $cartItem->quantity * $cartItem->product->price;
         }
 

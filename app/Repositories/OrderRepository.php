@@ -39,10 +39,7 @@ class OrderRepository
      */
     public function getUserOrders(int $userId): Collection
     {
-        return Order::where('user_id', $userId)
-            ->with('orderItems.product')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return Order::forUser($userId)->get();
     }
 
     /**
@@ -50,10 +47,7 @@ class OrderRepository
      */
     public function getUserOrdersPaginated(int $userId, int $perPage = 10): LengthAwarePaginator
     {
-        return Order::where('user_id', $userId)
-            ->with('orderItems.product')
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        return Order::forUser($userId)->paginate($perPage);
     }
 
     /**

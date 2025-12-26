@@ -21,5 +21,16 @@ class PaginationHelper
             'total' => $paginator->total(),
         ];
     }
-}
 
+    /**
+     * Format paginated data for Inertia response
+     */
+    public static function formatForInertia(LengthAwarePaginator $paginator, string $resourceClass): array
+    {
+        return [
+            'data' => $resourceClass::collection($paginator->items())->resolve(),
+            'links' => $paginator->linkCollection()->toArray(),
+            'meta' => self::getMetadata($paginator),
+        ];
+    }
+}

@@ -14,16 +14,12 @@ class CartItemResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Handle case where product might be null (race condition or deleted product)
-        $product = null;
-        if ($this->relationLoaded('product') && $this->product) {
-            $product = (new ProductResource($this->product))->resolve();
-        }
-        
         return [
             'id' => $this->id,
             'quantity' => $this->quantity,
-            'product' => $product,
+            'product' => $this->relationLoaded('product') 
+                ? (new ProductResource($this->product))->resolve()
+                : null,
         ];
     }
 }

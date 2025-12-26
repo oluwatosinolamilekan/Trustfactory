@@ -61,9 +61,11 @@ A simple e-commerce shopping cart application built with Laravel and React (via 
    ```
 
 6. **Configure mail** (in `.env` file)
+   
+   For local development with MailHog or Mailpit:
    ```
    MAIL_MAILER=smtp
-   MAIL_HOST=mailpit
+   MAIL_HOST=127.0.0.1
    MAIL_PORT=1025
    MAIL_USERNAME=null
    MAIL_PASSWORD=null
@@ -71,6 +73,13 @@ A simple e-commerce shopping cart application built with Laravel and React (via 
    MAIL_FROM_ADDRESS="hello@example.com"
    MAIL_FROM_NAME="${APP_NAME}"
    ```
+   
+   Or use the log driver for simple testing:
+   ```
+   MAIL_MAILER=log
+   ```
+   
+   See the [Mail Testing](#mail-testing) section for detailed setup instructions.
 
 7. **Run migrations and seeders**
    ```bash
@@ -218,26 +227,131 @@ All routes require authentication:
 3. **Add items to cart** with desired quantities
 4. **View cart** and update quantities or remove items
 5. **Checkout** to complete the order
-6. **Check low stock alerts** - If any product drops to 10 or below, check queue logs
-7. **Test daily report** - Run manually:
-   ```bash
-   php artisan schedule:run
-   ```
-   Or trigger the job directly:
-   ```bash
-   php artisan tinker
-   >>> App\Jobs\DailySalesReport::dispatch();
-   ```
+6. **Check low stock alerts** - If any product drops to 10 or below, check your mail testing tool (see [Mail Testing](#mail-testing))
+7. **Test daily report** - See [Mail Testing](#mail-testing) section for instructions
 
 ## Mail Testing
 
-For development, you can use Mailpit (included in Laravel Sail) or use Laravel's log driver:
+The application sends emails for:
+- **Low Stock Alerts**: When product stock falls to 10 or below
+- **Daily Sales Reports**: Automated daily summary at 6:00 PM
+
+### Option 1: MailHog (Recommended for Local Testing)
+
+MailHog is a lightweight email testing tool with a web interface.
+
+#### Installation
+
+**macOS (via Homebrew):**
+```bash
+brew install mailhog
+```
+
+**Linux:**
+```bash
+# Download binary
+wget https://github.com/mailhog/MailHog/releases/download/v1.0.1/MailHog_linux_amd64
+chmod +x MailHog_linux_amd64
+sudo mv MailHog_linux_amd64 /usr/local/bin/mailhog
+```
+
+**Windows:**
+Download from [MailHog Releases](https://github.com/mailhog/MailHog/releases)
+
+#### Running MailHog
+
+Start MailHog in a separate terminal:
+```bash
+mailhog
+```
+
+MailHog will start:
+- **SMTP Server**: `localhost:1025`
+- **Web UI**: `http://localhost:8025`
+
+#### Configure Laravel for MailHog
+
+Update your `.env` file:
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+Now all emails will be caught by MailHog and viewable at `http://localhost:8025`
+
+### Option 2: Mailpit
+
+Mailpit is a modern alternative to MailHog (included with Laravel Sail).
+
+#### Installation
+
+**macOS (via Homebrew):**
+```bash
+brew install mailpit
+```
+
+**Other platforms:**
+See [Mailpit Installation Guide](https://github.com/axllent/mailpit)
+
+#### Running Mailpit
+
+```bash
+mailpit
+```
+
+#### Configure Laravel for Mailpit
+
+Update your `.env` file:
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+Access the web UI at `http://localhost:8025`
+
+### Option 3: Log Driver (Simple Testing)
+
+For quick testing without additional tools, use Laravel's log driver:
 
 ```env
 MAIL_MAILER=log
 ```
 
 Emails will be logged to `storage/logs/laravel.log`
+
+### Testing Email Features
+
+#### Test Low Stock Alert
+
+1. Start MailHog/Mailpit (or configure log driver)
+2. Make sure queue worker is running: `php artisan queue:work`
+3. Place an order that reduces product stock to 10 or below
+4. Check MailHog/Mailpit web interface or log file for the alert email
+
+#### Test Daily Sales Report
+
+Manually trigger the report:
+```bash
+php artisan tinker
+>>> App\Jobs\DailySalesReport::dispatch();
+```
+
+Or wait for the scheduled time (6:00 PM daily) with scheduler running:
+```bash
+php artisan schedule:work
+```
 
 ## Queue Configuration
 

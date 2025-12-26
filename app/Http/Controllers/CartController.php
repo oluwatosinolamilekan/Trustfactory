@@ -9,12 +9,15 @@ use App\Models\CartItem;
 use App\Repositories\CartRepository;
 use App\Repositories\ProductRepository;
 use App\Services\CheckoutService;
+use App\Traits\ValidatesStock;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class CartController extends Controller
 {
+    use ValidatesStock;
+
     public function __construct(
         protected CartRepository $cartRepository,
         protected ProductRepository $productRepository,
@@ -24,17 +27,11 @@ class CartController extends Controller
     public function index(): Response
     {
         $cartItems = $this->cartRepository->getUserCartItems(auth()->id());
-        
-        // Ensure we always have a collection, even if empty
-        if ($cartItems === null) {
-            $cartItems = collect([]);
-        }
-        
         $total = $this->cartRepository->calculateTotal($cartItems);
         
         return Inertia::render('Cart/Index', [
             'cartItems' => CartItemResource::collection($cartItems)->resolve(),
-            'total' => $total ?? 0,
+            'total' => $total,
         ]);
     }
 
@@ -42,8 +39,8 @@ class CartController extends Controller
     {
         $product = $this->productRepository->findByIdOrFail($request->product_id);
 
-        if (!$this->productRepository->hasSufficientStock($product, $request->quantity)) {
-            return back()->with('error', 'Insufficient stock available');
+        if ($error = $this->validateStock($product, $request->quantity, $this->productRepository)) {
+            return $error;
         }
 
         $result = $this->cartRepository->addOrUpdateProduct(
@@ -58,12 +55,10 @@ class CartController extends Controller
 
     public function update(UpdateCartItemRequest $request, CartItem $cartItem): RedirectResponse
     {
-        if (!$this->cartRepository->userOwnsCartItem($cartItem, auth()->id())) {
-            return back()->with('error', 'Unauthorized');
-        }
+        $this->authorize('update', $cartItem);
 
-        if (!$this->productRepository->hasSufficientStock($cartItem->product, $request->quantity)) {
-            return back()->with('error', 'Insufficient stock available');
+        if ($error = $this->validateStock($cartItem->product, $request->quantity, $this->productRepository)) {
+            return $error;
         }
 
         $this->cartRepository->updateQuantity($cartItem, $request->quantity);
@@ -73,9 +68,7 @@ class CartController extends Controller
 
     public function remove(CartItem $cartItem): RedirectResponse
     {
-        if (!$this->cartRepository->userOwnsCartItem($cartItem, auth()->id())) {
-            return back()->with('error', 'Unauthorized');
-        }
+        $this->authorize('delete', $cartItem);
 
         $this->cartRepository->delete($cartItem);
 

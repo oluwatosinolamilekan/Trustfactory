@@ -1,6 +1,6 @@
 <?php
 
-use App\Jobs\DailySalesReport;
 use Illuminate\Support\Facades\Schedule;
 
-Schedule::job(new DailySalesReport())->dailyAt('18:00');
+// Run daily sales report every evening at 6:00 PM
+Schedule::command('report:daily-sales')->dailyAt('18:00');

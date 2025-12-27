@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -20,7 +21,7 @@ class OrderTest extends TestCase
         $order = Order::create([
             'user_id' => $user->id,
             'total_amount' => 100.00,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
         ]);
 
         $this->assertInstanceOf(User::class, $order->user);
@@ -37,7 +38,7 @@ class OrderTest extends TestCase
         $order = Order::create([
             'user_id' => $user->id,
             'total_amount' => 100.00,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
         ]);
 
         OrderItem::create([
@@ -57,7 +58,7 @@ class OrderTest extends TestCase
         $order = Order::create([
             'user_id' => $user->id,
             'total_amount' => 99.99,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
         ]);
 
         $this->assertIsString($order->total_amount);
@@ -72,13 +73,13 @@ class OrderTest extends TestCase
         $order1 = Order::create([
             'user_id' => $user1->id,
             'total_amount' => 100.00,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
         ]);
 
         $order2 = Order::create([
             'user_id' => $user2->id,
             'total_amount' => 200.00,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
         ]);
 
         $userOrders = Order::forUser($user1->id)->get();
@@ -95,7 +96,7 @@ class OrderTest extends TestCase
         $oldOrder = Order::create([
             'user_id' => $user->id,
             'total_amount' => 100.00,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
         ]);
 
         // Wait a moment to ensure different timestamps
@@ -105,7 +106,7 @@ class OrderTest extends TestCase
         $recentOrder = Order::create([
             'user_id' => $user->id,
             'total_amount' => 200.00,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
         ]);
 
         $orders = Order::forUser($user->id)->get();
@@ -121,7 +122,7 @@ class OrderTest extends TestCase
         $todayOrder = Order::create([
             'user_id' => $user->id,
             'total_amount' => 100.00,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
         ]);
 
         $today = $todayOrder->created_at->toDateString();
@@ -130,7 +131,7 @@ class OrderTest extends TestCase
         Order::create([
             'user_id' => $user->id,
             'total_amount' => 200.00,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
             'created_at' => now()->subDay(),
             'updated_at' => now()->subDay(),
         ]);
@@ -150,7 +151,7 @@ class OrderTest extends TestCase
         $order = Order::create([
             'user_id' => $user->id,
             'total_amount' => 100.00,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
         ]);
 
         $today = $order->created_at->toDateString();
@@ -159,7 +160,7 @@ class OrderTest extends TestCase
         Order::create([
             'user_id' => $user->id,
             'total_amount' => 200.00,
-            'status' => 'completed',
+            'status' => OrderStatus::COMPLETED,
             'created_at' => now()->subDay(),
             'updated_at' => now()->subDay(),
         ]);
@@ -176,10 +177,10 @@ class OrderTest extends TestCase
         $order = Order::create([
             'user_id' => $user->id,
             'total_amount' => 150.00,
-            'status' => 'pending',
+            'status' => OrderStatus::PENDING,
         ]);
 
-        $this->assertEquals('pending', $order->status);
+        $this->assertEquals(OrderStatus::PENDING, $order->status);
     }
 }
 

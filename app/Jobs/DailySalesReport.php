@@ -27,6 +27,7 @@ class DailySalesReport implements ShouldQueue
         $today = now()->format('Y-m-d');
         
         $orders = Order::getOrdersByDate($today);
+
         $totalRevenue = $orders->sum('total_amount');
         $totalOrders = $orders->count();
         $productsSold = OrderItem::getProductsSoldByDate($today);

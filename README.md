@@ -2,6 +2,12 @@
 
 A simple e-commerce shopping cart application built with Laravel and React (via Inertia.js).
 
+## Demo Video
+
+🎥 **[Watch the Demo Video](https://www.loom.com/share/YOUR_LOOM_VIDEO_ID)**
+
+See the application in action and learn about the implementation approach.
+
 ## Features
 
 - **User Authentication**: Built-in authentication using Laravel Breeze with React
@@ -206,16 +212,50 @@ The job sends an email to the admin user with product details.
 
 ### Daily Sales Report
 
-Configured to run daily at 6:00 PM (18:00) in `routes/console.php`:
+Configured to run every evening at 6:00 PM (18:00) via an Artisan command in `routes/console.php`:
 
 ```php
-Schedule::job(new DailySalesReport())->dailyAt('18:00');
+Schedule::command('report:daily-sales')->dailyAt('18:00');
 ```
 
 The report includes:
 - Total orders for the day
 - Total revenue
 - Products sold with quantities and revenue per product
+
+You can run the report manually at any time:
+```bash
+php artisan report:daily-sales
+```
+
+Make sure your queue worker is running to process the job:
+```bash
+php artisan queue:work
+```
+
+#### Email Format
+
+The daily sales report email is beautifully formatted and includes:
+
+![Daily Sales Report Email](sales-reports.png)
+
+- **Header**: Modern design with chart icon and date
+- **Summary Cards**: 
+  - Total Orders count
+  - Total Revenue (formatted with dollar sign and cents)
+- **Products Table**: Detailed breakdown showing:
+  - Product Name
+  - Quantity Sold
+  - Revenue per product
+- **Footer**: Timestamp of when the report was generated
+
+Example from the screenshot above:
+- Date: 2025-12-27
+- Total Orders: 1
+- Total Revenue: $7,528.29
+- Products breakdown includes items like "Ergonomic USB Hub Pro" (13 units, $2,624.83), "RGB Mouse" (13 units, $3,453.97), "Gaming Desk" (1 unit, $505.51), and more
+
+The email is sent to all admin users and provides a comprehensive daily summary of sales performance.
 
 ### Cart Management
 
@@ -254,7 +294,7 @@ All routes require authentication:
 
 The application sends emails for:
 - **Low Stock Alerts**: When product stock falls to 10 or below
-- **Daily Sales Reports**: Automated daily summary at 6:00 PM
+- **Daily Sales Reports**: Automated daily summary at 8:00 PM
 
 ### Option 1: MailHog (Recommended for Local Testing)
 
@@ -362,16 +402,25 @@ Emails will be logged to `storage/logs/laravel.log`
 
 #### Test Daily Sales Report
 
-Manually trigger the report:
+Manually trigger the report using the command:
+```bash
+# Run the command manually
+php artisan report:daily-sales
+
+# Make sure your queue worker is running
+php artisan queue:work
+
+# Or for testing, run scheduled tasks
+php artisan schedule:work
+```
+
+Alternatively, dispatch the job directly via Tinker:
 ```bash
 php artisan tinker
 >>> App\Jobs\DailySalesReport::dispatch();
 ```
 
-Or wait for the scheduled time (6:00 PM daily) with scheduler running:
-```bash
-php artisan schedule:work
-```
+The report is scheduled to run automatically every evening at 6:00 PM (18:00).
 
 ## Queue Configuration
 
@@ -436,6 +485,104 @@ For detailed information about the caching implementation:
 - **Complete Guide**: `CACHE_IMPLEMENTATION.md`
 - **Testing Guide**: `CACHE_TESTING.md`
 - **Summary**: `CACHE_SUMMARY.md`
+
+## Running Tests
+
+The application includes comprehensive unit and feature tests using PHPUnit.
+
+### Running All Tests
+
+```bash
+php artisan test
+```
+
+Or using PHPUnit directly:
+```bash
+./vendor/bin/phpunit
+```
+
+### Running Unit Tests Only
+
+Unit tests are located in `tests/Unit/` directory:
+
+```bash
+php artisan test --testsuite=Unit
+```
+
+Or:
+```bash
+./vendor/bin/phpunit --testsuite=Unit
+```
+
+### Running Feature Tests Only
+
+Feature tests are located in `tests/Feature/` directory:
+
+```bash
+php artisan test --testsuite=Feature
+```
+
+Or:
+```bash
+./vendor/bin/phpunit --testsuite=Feature
+```
+
+### Running Specific Test Files
+
+Run a specific test file:
+```bash
+php artisan test tests/Unit/CartRepositoryTest.php
+php artisan test tests/Feature/ProductTest.php
+```
+
+### Running Specific Test Methods
+
+Run a specific test method:
+```bash
+php artisan test --filter test_can_add_item_to_cart
+```
+
+### Test Coverage
+
+Available test suites:
+
+**Unit Tests:**
+- `CartItemTest` - Cart item model tests
+- `CartRepositoryTest` - Cart repository logic tests
+- `CheckoutServiceTest` - Checkout service tests
+- `OrderRepositoryTest` - Order repository tests
+- `OrderTest` - Order model tests
+- `ProductRepositoryTest` - Product repository tests
+- `ProductTest` - Product model tests
+
+**Feature Tests:**
+- `CartTest` - Shopping cart functionality
+- `CheckoutTest` - Checkout process
+- `OrderTest` - Order management
+- `ProductTest` - Product browsing and management
+- `Auth/*` - Authentication flows
+
+### Running Tests with Output
+
+For more detailed output:
+```bash
+php artisan test --verbose
+```
+
+### Running Tests in Parallel
+
+For faster test execution:
+```bash
+php artisan test --parallel
+```
+
+### Before Running Tests
+
+Make sure your test environment is configured:
+
+1. Tests use the database configured in `phpunit.xml`
+2. By default, tests use an in-memory SQLite database
+3. Migrations are run automatically before tests
 
 ## Production Deployment
 
